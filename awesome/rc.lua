@@ -11,6 +11,8 @@
 -- found (e.g. lgi). If LuaRocks is not installed, do nothing.
 pcall(require, "luarocks.loader")
 
+local keyboard_layout = require("keyboard_layout")
+local switcher      = require("awesome-switcher")
 local gears         = require("gears")
 local awful         = require("awful")
                       require("awful.autofocus")
@@ -23,7 +25,15 @@ local freedesktop   = require("freedesktop")
 local hotkeys_popup = require("awful.hotkeys_popup")
                       require("awful.hotkeys_popup.keys")
 local mytable       = awful.util.table or gears.table -- 4.{0,1} compatibility\
-local xrandr = require("xrandr")
+local xrandr        = require("xrandr")
+local kbdcfg = keyboard_layout.kbdcfg({type = "gui"})
+
+-- Set english and spanish layout
+-- See https://gist.github.com/jatcwang/ae3b7019f219b8cdc6798329108c9aee for a list of layouts
+kbdcfg.add_primary_layout("English", beautiful.en_layout, "us")
+kbdcfg.add_primary_layout("Espanyol", "nodeadkeys", "latam")
+
+kbdcfg.bind()
 
 -- }}}
 
@@ -83,6 +93,9 @@ awful.spawn.with_shell(
 
 -- }}}
 
+-- Setup two monitor configuration
+for i = 1,4 do xrandr.xrandr() end
+
 -- {{{ Variable definitions
 
 local themes = {
@@ -106,6 +119,7 @@ local vi_focus     = false -- vi-like client focus https://github.com/lcpz/aweso
 local cycle_prev   = true  -- cycle with only the previously focused client or all https://github.com/lcpz/awesome-copycats/issues/274
 local editor       = os.getenv("EDITOR") or "code"
 local browser      = "firefox"
+
 
 awful.util.terminal = terminal
 awful.util.tagnames = { "1", "2", "3", "4", "5" }
@@ -345,18 +359,26 @@ globalkeys = mytable.join(
               {description = "focus the previous screen", group = "screen"}),
     awful.key({ modkey,           }, "u", awful.client.urgent.jumpto,
               {description = "jump to urgent client", group = "client"}),
-    awful.key({ modkey,           }, "Tab",
-        function ()
-            if cycle_prev then
-                awful.client.focus.history.previous()
-            else
-                awful.client.focus.byidx(-1)
-            end
-            if client.focus then
-                client.focus:raise()
-            end
-        end,
-        {description = "cycle with previous/go back", group = "client"}),
+    awful.key({ "Mod1",           }, "Tab",
+              function ()
+                  switcher.switch( 1, "Mod1", "Alt_L", "Shift", "Tab")
+              end),        
+    awful.key({ "Mod1", "Shift"   }, "Tab",
+              function ()
+                  switcher.switch(-1, "Mod1", "Alt_L", "Shift", "Tab")
+              end),
+    -- awful.key({ modkey,           }, "Tab",
+    --     function ()
+    --         if cycle_prev then
+    --             awful.client.focus.history.previous()
+    --         else
+    --             awful.client.focus.byidx(-1)
+    --         end
+    --         if client.focus then
+    --             client.focus:raise()
+    --         end
+    --     end,
+    --     {description = "cycle with previous/go back", group = "client"}),
 
     -- Show/hide wibox
     awful.key({ modkey }, "b", function ()
@@ -471,7 +493,14 @@ globalkeys = mytable.join(
             beautiful.volume.update()
         end,
         {description = "volume 0%", group = "hotkeys"}),
+    
 
+    -- Spotify control source: https://stackoverflow.com/questions/31557520/global-hotkeys-for-next-track-in-awesome-wm
+    awful.key({ }, "XF86AudioPlay", function () awful.util.spawn("dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.PlayPause", false) end),
+    awful.key({ }, "XF86AudioNext", function () awful.util.spawn("dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Next", false) end),
+    awful.key({ }, "XF86AudioPrev", function () awful.util.spawn("dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Previous", false) end),
+    awful.key({ }, "XF86AudioStop", function () awful.util.spawn("dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Stop", false) end),
+    
     -- MPD control
     awful.key({ altkey, "Control" }, "Up",
         function ()
@@ -510,7 +539,12 @@ globalkeys = mytable.join(
             naughty.notify(common)
         end,
         {description = "mpc on/off", group = "widgets"}),
-
+    
+    -- Keyboard Layour https://github.com/echuraev/keyboard_layout
+    awful.key({"Shift"}, "Alt_L", function () kbdcfg.switch_next() end),
+    -- Alt-Shift to change keyboard layout
+    awful.key({"Mod1"}, "Shift_L", function () kbdcfg.switch_next() end),
+    
     -- Copy primary to clipboard (terminals to gtk)
     awful.key({ modkey }, "c", function () awful.spawn.with_shell("xsel | xsel -i -b") end,
               {description = "copy terminal to gtk", group = "hotkeys"}),
