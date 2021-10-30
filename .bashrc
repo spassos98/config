@@ -111,7 +111,7 @@ export PATH=/home/spassos/.local/bin:$PATH
 
 eval "$(starship init bash)"
 
-# neofetch --w3m ~/Downloads/truw.png
 neofetch
 
-alias config='/usr/bin/git --git-dir=$HOME/dotfiles/ --work-tree=$HOME' 
+# Deactivate capslock
+setxkbmap -option caps:none
