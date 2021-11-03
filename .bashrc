@@ -112,6 +112,3 @@ export PATH=/home/spassos/.local/bin:$PATH
 eval "$(starship init bash)"
 
 neofetch
-
-# Deactivate capslock
-setxkbmap -option caps:none

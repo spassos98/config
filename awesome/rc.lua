@@ -108,8 +108,9 @@ local altkey       = "Mod1"
 local terminal     = "x-terminal-emulator"
 local vi_focus     = false -- vi-like client focus https://github.com/lcpz/awesome-copycats/issues/275
 local cycle_prev   = true  -- cycle with only the previously focused client or all https://github.com/lcpz/awesome-copycats/issues/274
-local editor       = os.getenv("EDITOR") or "code"
+local editor       = os.getenv("EDITOR") or "emacs"
 local browser      = "firefox"
+local file_manager = "nemo"
 
 -- Set english and spanish layout
 -- See https://gist.github.com/jatcwang/ae3b7019f219b8cdc6798329108c9aee for a list of layouts
@@ -442,12 +443,6 @@ globalkeys = mytable.join(
         end
     end, {description = "restore minimized", group = "client"}),
 
-    -- Widgets popups
-    awful.key({ altkey, }, "c", function () if beautiful.cal then beautiful.cal.show(7) end end,
-              {description = "show calendar", group = "widgets"}),
-    awful.key({ altkey, }, "h", function () if beautiful.fs then beautiful.fs.show(7) end end,
-              {description = "show filesystem", group = "widgets"}),
-
     -- Screen brightness
     awful.key({ }, "XF86MonBrightnessUp", function () os.execute("xbacklight -inc 10") end,
               {description = "+10%", group = "hotkeys"}),
@@ -519,6 +514,10 @@ globalkeys = mytable.join(
     -- User programs
     awful.key({ modkey }, "q", function () awful.spawn(browser) end,
               {description = "run browser", group = "launcher"}),
+
+    -- User programs
+    awful.key({ modkey }, "p", function () awful.spawn(file_manager) end,
+              {description = "open file manager", group = "launcher"}),
 
     -- Dmenu
     awful.key({ modkey },            "r",     function () 
@@ -782,5 +781,10 @@ end)
 
 client.connect_signal("focus", function(c) c.border_color = beautiful.border_focus end)
 client.connect_signal("unfocus", function(c) c.border_color = beautiful.border_normal end)
+
+-- Autostart
+
+awful.spawn.with_shell("compton")
+awful.spawn.with_shell("setxkbmap -option caps:none")
 
 -- }}}
